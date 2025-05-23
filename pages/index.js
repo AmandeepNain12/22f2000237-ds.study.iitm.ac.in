@@ -1,71 +1,104 @@
-import { useCallback, useEffect, useState } from 'react'
-import Button from '../components/Button'
-import ClickCount from '../components/ClickCount'
-import styles from '../styles/home.module.css'
+import { useState } from 'react';
 
-function throwError() {
-  console.log(
-    // The function body() is not defined
-    document.body()
-  )
-}
+export default function Home() {
+  const [tasks, setTasks] = useState([]);
+  const [input, setInput] = useState('');
 
-function Home() {
-  const [count, setCount] = useState(0)
-  const increment = useCallback(() => {
-    setCount((v) => v + 1)
-  }, [setCount])
+  const addTask = () => {
+    if (input.trim() === '') return;
+    setTasks([...tasks, { text: input, completed: false }]);
+    setInput('');
+  };
 
-  useEffect(() => {
-    const r = setInterval(() => {
-      increment()
-    }, 1000)
+  const toggleTask = (index) => {
+    const updated = [...tasks];
+    updated[index].completed = !updated[index].completed;
+    setTasks(updated);
+  };
 
-    return () => {
-      clearInterval(r)
-    }
-  }, [increment])
+  const removeTask = (index) => {
+    const updated = tasks.filter((_, i) => i !== index);
+    setTasks(updated);
+  };
 
   return (
-    <main className={styles.main}>
-      <h1>Fast Refresh Demo</h1>
-      <p>
-        Fast Refresh is a Next.js feature that gives you instantaneous feedback
-        on edits made to your React components, without ever losing component
-        state.
-      </p>
-      <hr className={styles.hr} />
-      <div>
-        <p>
-          Auto incrementing value. The counter won't reset after edits or if
-          there are errors.
-        </p>
-        <p>Current value: {count}</p>
-      </div>
-      <hr className={styles.hr} />
-      <div>
-        <p>Component with state.</p>
-        <ClickCount />
-      </div>
-      <hr className={styles.hr} />
-      <div>
-        <p>
-          The button below will throw 2 errors. You'll see the error overlay to
-          let you know about the errors but it won't break the page or reset
-          your state.
-        </p>
-        <Button
-          onClick={(e) => {
-            setTimeout(() => document.parentNode(), 0)
-            throwError()
-          }}
-        >
-          Throw an Error
-        </Button>
-      </div>
-      <hr className={styles.hr} />
-    </main>
-  )
+    <div style={styles.container}>
+      <h1>My To-Do List</h1>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Enter a new task..."
+        style={styles.input}
+      />
+      <button onClick={addTask} style={styles.button}>Add Task</button>
+      <ul style={styles.list}>
+        {tasks.map((task, index) => (
+          <li
+            key={index}
+            onClick={() => toggleTask(index)}
+            style={{
+              ...styles.task,
+              textDecoration: task.completed ? 'line-through' : 'none',
+              color: task.completed ? 'gray' : 'black',
+            }}
+          >
+            {task.text}
+            <button onClick={(e) => { e.stopPropagation(); removeTask(index); }} style={styles.removeBtn}>
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default Home
+const styles = {
+  container: {
+    width: '300px',
+    margin: '50px auto',
+    padding: '20px',
+    background: 'white',
+    borderRadius: '10px',
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+    fontFamily: 'Arial',
+  },
+  input: {
+    width: '100%',
+    padding: '10px',
+    marginBottom: '10px',
+    boxSizing: 'border-box',
+  },
+  button: {
+    width: '100%',
+    padding: '10px',
+    background: '#007bff',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    marginBottom: '15px',
+  },
+  list: {
+    listStyle: 'none',
+    padding: 0,
+  },
+  task: {
+    background: '#f1f1f1',
+    padding: '10px',
+    marginBottom: '5px',
+    borderRadius: '5px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    cursor: 'pointer',
+  },
+  removeBtn: {
+    background: 'none',
+    border: 'none',
+    color: 'red',
+    cursor: 'pointer',
+    marginLeft: '10px',
+  },
+};
